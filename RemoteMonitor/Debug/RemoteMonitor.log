@@ -1,0 +1,65 @@
+﻿生成启动时间为 2018-06-26 19:59:58。
+     1>项目“F:\C++\RemoteMonitor\RemoteMonitor\RemoteMonitor\RemoteMonitor.vcxproj”在节点 2 上(rebuild 个目标)。
+     1>_PrepareForClean:
+         正在删除文件“Debug\RemoteMonitor.lastbuildstate”。
+       InitializeBuildStatus:
+         正在创建“Debug\RemoteMonitor.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+       ClCompile:
+         C:\软件\visiostudio2010\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _MBCS /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"StdAfx.h" /Fp"Debug\RemoteMonitor.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         C:\软件\visiostudio2010\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _MBCS /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\RemoteMonitor.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ChildFrm.cpp Client.cpp MainFrm.cpp Monitor.cpp RemoteMonitor.cpp RemoteMonitorDoc.cpp RemoteMonitorView.cpp
+         RemoteMonitorView.cpp
+         RemoteMonitorDoc.cpp
+         RemoteMonitor.cpp
+         Monitor.cpp
+     1>f:\c++\remotemonitor\remotemonitor\remotemonitor\monitor.h(4): warning C4005: “WINAPI”: 宏重定义
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\windef.h(124) : 参见“WINAPI”的前一个定义
+         MainFrm.cpp
+     1>f:\c++\remotemonitor\remotemonitor\remotemonitor\client.h(4): warning C4005: “WINAPI”: 宏重定义
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\windef.h(124) : 参见“WINAPI”的前一个定义
+     1>f:\c++\remotemonitor\remotemonitor\remotemonitor\monitor.h(5): warning C4005: “WM_SOCKET”: 宏重定义
+                 f:\c++\remotemonitor\remotemonitor\remotemonitor\client.h(3) : 参见“WM_SOCKET”的前一个定义
+         Client.cpp
+     1>f:\c++\remotemonitor\remotemonitor\remotemonitor\client.h(4): warning C4005: “WINAPI”: 宏重定义
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\windef.h(124) : 参见“WINAPI”的前一个定义
+         ChildFrm.cpp
+         正在生成代码...
+       ResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D _DEBUG /D _AFXDLL /l"0x0804" /IDebug\ /nologo /fo"Debug\RemoteMonitor.res" RemoteMonitor.rc 
+       ManifestResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"Debug\RemoteMonitor.exe.embed.manifest.res" Debug\RemoteMonitor_manifest.rc 
+       Link:
+         C:\软件\visiostudio2010\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"F:\C++\RemoteMonitor\RemoteMonitor\Debug\RemoteMonitor.exe" /INCREMENTAL /NOLOGO /MANIFEST /ManifestFile:"Debug\RemoteMonitor.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"F:\C++\RemoteMonitor\RemoteMonitor\Debug\RemoteMonitor.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:\C++\RemoteMonitor\RemoteMonitor\Debug\RemoteMonitor.lib" /MACHINE:X86 Debug\RemoteMonitor.res
+         Debug\RemoteMonitor.exe.embed.manifest.res
+         Debug\ChildFrm.obj
+         Debug\Client.obj
+         Debug\MainFrm.obj
+         Debug\Monitor.obj
+         Debug\RemoteMonitor.obj
+         Debug\RemoteMonitorDoc.obj
+         Debug\RemoteMonitorView.obj
+         Debug\stdafx.obj
+       Manifest:
+         正在删除文件“Debug\RemoteMonitor.exe.embed.manifest”。
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\RemoteMonitor.exe.embed.manifest" /manifest Debug\RemoteMonitor.exe.intermediate.manifest "C:\软件\visiostudio2010\VC\Include\Manifest\dpiaware.manifest"
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"Debug\RemoteMonitor.exe.embed.manifest.res" Debug\RemoteMonitor_manifest.rc 
+       LinkEmbedManifest:
+         C:\软件\visiostudio2010\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"F:\C++\RemoteMonitor\RemoteMonitor\Debug\RemoteMonitor.exe" /INCREMENTAL /NOLOGO /MANIFEST /ManifestFile:"Debug\RemoteMonitor.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"F:\C++\RemoteMonitor\RemoteMonitor\Debug\RemoteMonitor.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:\C++\RemoteMonitor\RemoteMonitor\Debug\RemoteMonitor.lib" /MACHINE:X86 Debug\RemoteMonitor.res
+         Debug\RemoteMonitor.exe.embed.manifest.res
+         Debug\ChildFrm.obj
+         Debug\Client.obj
+         Debug\MainFrm.obj
+         Debug\Monitor.obj
+         Debug\RemoteMonitor.obj
+         Debug\RemoteMonitorDoc.obj
+         Debug\RemoteMonitorView.obj
+         Debug\stdafx.obj
+         RemoteMonitor.vcxproj -> F:\C++\RemoteMonitor\RemoteMonitor\Debug\RemoteMonitor.exe
+       FinalizeBuildStatus:
+         正在删除文件“Debug\RemoteMonitor.unsuccessfulbuild”。
+         正在对“Debug\RemoteMonitor.lastbuildstate”执行 Touch 任务。
+     1>已完成生成项目“F:\C++\RemoteMonitor\RemoteMonitor\RemoteMonitor\RemoteMonitor.vcxproj”(rebuild 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:06.80
