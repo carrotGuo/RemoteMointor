@@ -65,6 +65,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 		case FD_READ:{
 			if(!is_recv){
 				is_recv = true;
+				int can_send = 1;
 				unsigned long long file_size = 0;
 				//接收文件大小并保存到file_size
 				if(!recv(socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL)){
@@ -75,17 +76,15 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				if(file_size>0){
 					DWORD dwNumberOfBytesRecv = 0;		//接收到的字节数
 					DWORD dwCountOfBytesRecv = 0;		//已接收文件大小
-					char Buffer[1024];					//缓冲区大小
-					CString filename = _T("Recv\\ImageOne.jpg");
-					HANDLE hFile;
-					hFile = CreateFile(filename,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
-
+					char Buffer[1024];
+					CString filename = "Recv\\ImageOne.jpg";
+					HANDLE hFile = CreateFile(filename,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 					//循环读文件
 					do{
 						//接收文件
 						dwNumberOfBytesRecv = ::recv(socket_client,Buffer,sizeof(Buffer),0);
 						//保存文件
-						::WriteFile(hFile,Buffer,dwNumberOfBytesRecv,&dwNumberOfBytesRecv,NULL);
+						::WriteFile(hFile,Buffer,dwNumberOfBytesRecv,&dwNumberOfBytesRecv,false);
 						dwCountOfBytesRecv += dwNumberOfBytesRecv;
 					}while(file_size-dwCountOfBytesRecv);
 					CloseHandle(hFile);
@@ -101,15 +100,19 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 }
 
 void CMonitor::showImage(){
+
 	pw = this->GetDlgItem(IDC_IMAGE);
-	CString filename = _T("RECV\\ImageOne.jpg");
-	Img.Destroy();
+	CString filename = "RECV\\ImageOne.jpg";
+	if(Img!=NULL){
+		Img.Destroy();
+	}
 	Img.Load(filename);
-	CDC *pdc;
+	//CDC *pdc;
 	pdc = pw->GetDC();
 	pdc->SetStretchBltMode(COLORONCOLOR);
 	Img.Draw(pdc->m_hDC,0,0,ww,wh);
 	pw->ReleaseDC(pdc);		//释放PDC
+	Img.Destroy();
 }
 
 /**

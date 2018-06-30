@@ -17,6 +17,7 @@ public:
 	int ww,wh;						//屏幕宽度和高度
 	CImage Img;
 	bool load_flag;
+	//int image_index;			//当前发送到第几张图片
 
 // 对话框数据
 	enum { IDD = IDD_DIALOG1 };

@@ -20,8 +20,12 @@ public:
 	int ww,wh;					//窗口宽高
 	CImage Img;					//显示监控区域
 	bool is_recv;
-	char Buff[1024];
 	IN_ADDR ip_client;
+	
+	//unsigned long long file_size;
+	
+	CDC *pdc;
+
 
 // 对话框数据
 	enum { IDD = IDD_MONITOR };

@@ -43,7 +43,6 @@ END_MESSAGE_MAP()
 LRESULT CClient::OnSocket(WPARAM wParam, LPARAM lParam){
 	switch(lParam){
 		case FD_READ:{
-
 			break;		 
 		}
 	}
@@ -147,31 +146,35 @@ void CClient::CaptureMultiframe(){
 void CClient::OnBnClickedStartmonitor()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	send_flag = false;
-	this->SetTimer(1,200,NULL);
+	    //send_flag = false;
+		//if (!send_flag) {
+		HANDLE hThread = CreateThread(NULL,0,ThreadProc,this,0,NULL);
+		//关闭该接收线程句柄，释放引用计数
+		CloseHandle(hThread);
+	//}
 }
 
 DWORD WINAPI CClient ::ThreadProc(LPVOID lpParameter) {
-	
 	CClient *pThis = (CClient*)lpParameter;
-	pThis->send_flag = true;
 	CString filename = "Screen\\ImageOne.jpg";	//发送的文件名称
 	HANDLE hFile;
 	unsigned long long file_size = 0;
 	char Buffer[1024];							//缓存区大小
 	DWORD dwNumberOfBytesRead;					//读取文件的字节数
 	
-	hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄
-	file_size = GetFileSize(hFile,NULL);		//获取文件大小
-	send(pThis->socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL);									//先发送文件大小
-	//发送文件(读到的字节大于0就循环发送)
-	do{
-		::ReadFile(hFile,Buffer,sizeof(Buffer),&dwNumberOfBytesRead,NULL);										//读文件某一部分到dwNumberOfBytesRead
-		::send(pThis->socket_client,Buffer,dwNumberOfBytesRead,0);														//发送文件
-	}while(dwNumberOfBytesRead);
-
-	CloseHandle(hFile);
-	pThis->send_flag = false;
+	while(1){
+		pThis->CaptureMultiframe();
+		hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄
+		file_size = GetFileSize(hFile,NULL);		//获取文件大小
+		send(pThis->socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL);									//先发送文件大小
+		//发送文件(读到的字节大于0就循环发送)
+		do{
+			::ReadFile(hFile,Buffer,sizeof(Buffer),&dwNumberOfBytesRead,NULL);										//读文件某一部分到dwNumberOfBytesRead
+			::send(pThis->socket_client,Buffer,dwNumberOfBytesRead,0);														//发送文件
+		}while(dwNumberOfBytesRead);
+		CloseHandle(hFile);
+		Sleep(100);
+	}
 	return 0;
 }
 
@@ -182,7 +185,7 @@ void CClient::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	if (!send_flag) {
-		CaptureMultiframe();
+		//CaptureMultiframe();
 		//启动一个线程发送文件
 		HANDLE hThread = CreateThread(NULL,0,ThreadProc,this,0,NULL);
 		//关闭该接收线程句柄，释放引用计数
