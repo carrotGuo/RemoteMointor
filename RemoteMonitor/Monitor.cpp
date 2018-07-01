@@ -65,7 +65,8 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 		case FD_READ:{
 			if(!is_recv){
 				is_recv = true;
-				int can_send = 1;
+				bool can_send = true;
+				byte buff = (unsigned char)can_send;
 				unsigned long long file_size = 0;
 				//接收文件大小并保存到file_size
 				if(!recv(socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL)){
@@ -90,6 +91,10 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 					CloseHandle(hFile);
 					//将图片显示到控件
 					showImage();
+					if(SOCKET_ERROR == send(socket_client,(char*)&buff,sizeof(unsigned char)+1,NULL)){
+						MessageBox("消息发送错误");
+						return 1;
+					}
 				}
 				is_recv = false;
 			}
@@ -186,6 +191,13 @@ BOOL CMonitor::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
+	
+	//窗口全屏 但是控件没有变化
+	//int cxScreen,cyScreen; 
+	//cxScreen=GetSystemMetrics(SM_CXSCREEN);
+	//cyScreen=GetSystemMetrics(SM_CYSCREEN);
+	//SetWindowPos(&wndTopMost,0,0,cxScreen,cyScreen,SWP_SHOWWINDOW);
+
 	has_client = false;
 	is_recv = false;
 

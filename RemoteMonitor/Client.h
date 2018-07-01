@@ -36,4 +36,5 @@ public:
 	static DWORD WINAPI ThreadProc(LPVOID lpParameter);
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnDestroy();
+	static DWORD WINAPI sendImg(LPVOID lpParameter);
 };

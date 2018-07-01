@@ -43,6 +43,16 @@ END_MESSAGE_MAP()
 LRESULT CClient::OnSocket(WPARAM wParam, LPARAM lParam){
 	switch(lParam){
 		case FD_READ:{
+			bool can_send = false;
+			byte buff;
+			recv(socket_client,(char*)&buff,sizeof(unsigned char)+1,NULL);
+			can_send = (bool)buff;
+			if(can_send){
+				//sendImg();
+				HANDLE hThread = CreateThread(NULL,0,sendImg,this,0,NULL);
+				//关闭该接收线程句柄，释放引用计数
+				CloseHandle(hThread);
+			}
 			break;		 
 		}
 	}
@@ -146,12 +156,14 @@ void CClient::CaptureMultiframe(){
 void CClient::OnBnClickedStartmonitor()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	    //send_flag = false;
-		//if (!send_flag) {
-		HANDLE hThread = CreateThread(NULL,0,ThreadProc,this,0,NULL);
+		//HANDLE hThread = CreateThread(NULL,0,ThreadProc,this,0,NULL);
 		//关闭该接收线程句柄，释放引用计数
-		CloseHandle(hThread);
-	//}
+		//CloseHandle(hThread);
+
+	//sendImg();			//先发送第一张屏幕  接下来等待接收到监控端读取完图片的信息，再次截取图片发送
+	HANDLE hThread = CreateThread(NULL,0,sendImg,this,0,NULL);
+	//关闭该接收线程句柄，释放引用计数
+	CloseHandle(hThread);
 }
 
 DWORD WINAPI CClient ::ThreadProc(LPVOID lpParameter) {
@@ -175,6 +187,31 @@ DWORD WINAPI CClient ::ThreadProc(LPVOID lpParameter) {
 		CloseHandle(hFile);
 		Sleep(100);
 	}
+	return 0;
+}
+
+/**
+*	截取屏幕并且发送图片
+*/
+DWORD WINAPI CClient::sendImg(LPVOID lpParameter){
+	CClient *pThis = (CClient*)lpParameter;
+	pThis->CaptureMultiframe();						//先截取当前屏幕
+
+	CString filename = "Screen\\ImageOne.jpg";	//发送的文件名称
+	HANDLE hFile;
+	unsigned long long file_size = 0;
+	char Buffer[1024];							//缓存区大小
+	DWORD dwNumberOfBytesRead;					//读取文件的字节数
+	
+	hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄
+	file_size = GetFileSize(hFile,NULL);		//获取文件大小
+	send(pThis->socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL);									//先发送文件大小
+	//发送文件(读到的字节大于0就循环发送)
+	do{
+		::ReadFile(hFile,Buffer,sizeof(Buffer),&dwNumberOfBytesRead,NULL);										//读文件某一部分到dwNumberOfBytesRead
+		::send(pThis->socket_client,Buffer,dwNumberOfBytesRead,0);														//发送文件
+	}while(dwNumberOfBytesRead);
+	CloseHandle(hFile);
 	return 0;
 }
 
