@@ -94,7 +94,11 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="IDB_BITMAP1.bmp" />
+    <None Include="IDB_BITMAP2.bmp" />
+    <None Include="IDB_BITMAP3.bmp" />
     <None Include="ReadMe.txt" />
+    <None Include="res\bitmap2.bmp" />
     <None Include="res\RemoteMonitor.ico" />
     <None Include="res\RemoteMonitor.rc2" />
     <None Include="res\RemoteMonitorDoc.ico" />

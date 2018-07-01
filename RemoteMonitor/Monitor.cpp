@@ -32,6 +32,8 @@ void CMonitor::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CMonitor, CDialogEx)
 	ON_BN_CLICKED(IDC_START, &CMonitor::OnBnClickedStart)
 	ON_MESSAGE(WM_SOCKET,OnSocket)
+	ON_WM_GETMINMAXINFO()
+	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 
@@ -208,6 +210,147 @@ BOOL CMonitor::OnInitDialog()
 	ww = rect.Width();
 	wh = rect.Height();
 
+	bFullScreen = false;
+	bmp1.LoadBitmapA(IDB_BITMAP2);
+	bmp2.LoadBitmapA(IDB_BITMAP3);
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
+}
+
+//BOOL CMonitor::PreTranslateMessage(MSG* pMsg)
+//{
+//	// TODO: 在此添加专用代码和/或调用基类
+//	if (WM_LBUTTONDBLCLK == pMsg->message) {
+//		if (!bFullScreen) {  
+//			bFullScreen = true;  
+//			//获取系统屏幕宽高  
+//			int g_iCurScreenWidth = GetSystemMetrics(SM_CXSCREEN);  
+//			int g_iCurScreenHeight = GetSystemMetrics(SM_CYSCREEN);  
+//  
+//			//用m_struOldWndpl得到当前窗口的显示状态和窗体位置，以供退出全屏后使用  
+//			GetWindowPlacement(&m_struOldWndpl);  
+//			GetDlgItem(IDC_IMAGE)->GetWindowPlacement(&m_struOldWndpPic);  
+//      
+//			//计算出窗口全屏显示客户端所应该设置的窗口大小，主要为了将不需要显示的窗体边框等部分排除在屏幕外  
+//			CRect rectWholeDlg;  
+//			CRect rectClient;  
+//			GetWindowRect(&rectWholeDlg);//得到当前窗体的总的相对于屏幕的坐标  
+//			RepositionBars(0, 0xffff, AFX_IDW_PANE_FIRST, reposQuery, &rectClient);//得到客户区窗口坐标  
+//			ClientToScreen(&rectClient);//将客户区相对窗体的坐标转为相对屏幕坐标  
+//			//GetDlgItem(IDC_STATIC_PICSHOW)->GetWindowRect(rectClient);//得到PICTURE控件坐标  
+//  
+//			rectFullScreen.left = rectWholeDlg.left - rectClient.left;  
+//			rectFullScreen.top = rectWholeDlg.top - rectClient.top;  
+//			rectFullScreen.right = rectWholeDlg.right + g_iCurScreenWidth - rectClient.right;  
+//			rectFullScreen.bottom = rectWholeDlg.bottom + g_iCurScreenHeight - rectClient.bottom;  
+//  
+//			//设置窗口对象参数，为全屏做好准备并进入全屏状态  
+//			WINDOWPLACEMENT struWndpl;  
+//			struWndpl.length = sizeof(WINDOWPLACEMENT);   
+//			struWndpl.flags = 0;  
+//			struWndpl.showCmd = SW_SHOWNORMAL;  
+//			struWndpl.rcNormalPosition = rectFullScreen;  
+//			SetWindowPlacement(&struWndpl);//该函数设置指定窗口的显示状态和显示大小位置等，是我们该程序最为重要的函数  
+//  
+//			//将PICTURE控件的坐标设为全屏大小  
+//			GetDlgItem(IDC_IMAGE)->MoveWindow(CRect(0, 0, g_iCurScreenWidth, g_iCurScreenHeight));  
+//		} else {  
+//			GetDlgItem(IDC_IMAGE)->SetWindowPlacement(&m_struOldWndpPic);  
+//			SetWindowPlacement(&m_struOldWndpl);  
+//			bFullScreen = false;  
+//		}  
+//	}
+//	return CDialogEx::PreTranslateMessage(pMsg);
+//}
+
+
+void CMonitor::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (bFullScreen)  {  
+        lpMMI->ptMaxSize.x = rectFullScreen.Width();  
+        lpMMI->ptMaxSize.y = rectFullScreen.Height();  
+        lpMMI->ptMaxPosition.x = rectFullScreen.left;  
+        lpMMI->ptMaxPosition.y = rectFullScreen.top;  
+        lpMMI->ptMaxTrackSize.x = rectFullScreen.Width();  
+        lpMMI->ptMaxTrackSize.y = rectFullScreen.Height();  
+    }  
+	CDialogEx::OnGetMinMaxInfo(lpMMI);
+}
+
+
+void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (!bFullScreen)  
+	{  
+		bFullScreen = true;  
+  
+		//获取系统屏幕宽高  
+		int g_iCurScreenWidth = GetSystemMetrics(SM_CXSCREEN);  
+		int g_iCurScreenHeight = GetSystemMetrics(SM_CYSCREEN);  
+  
+		//用m_struOldWndpl得到当前窗口的显示状态和窗体位置，以供退出全屏后使用  
+		GetWindowPlacement(&m_struOldWndpl);  
+		GetDlgItem(IDC_IMAGE)->GetWindowPlacement(&m_struOldWndpPic);  
+      
+		//计算出窗口全屏显示客户端所应该设置的窗口大小，主要为了将不需要显示的窗体边框等部分排除在屏幕外  
+		CRect rectWholeDlg;  
+		CRect rectClient;  
+		GetWindowRect(&rectWholeDlg);//得到当前窗体的总的相对于屏幕的坐标  
+		RepositionBars(0, 0xffff, AFX_IDW_PANE_FIRST, reposQuery, &rectClient);//得到客户区窗口坐标  
+		ClientToScreen(&rectClient);//将客户区相对窗体的坐标转为相对屏幕坐标  
+		//GetDlgItem(IDC_IMAGE)->GetWindowRect(rectClient);//得到PICTURE控件坐标  
+  
+		rectFullScreen.left = rectWholeDlg.left - rectClient.left;  
+		rectFullScreen.top = rectWholeDlg.top - rectClient.top;  
+		rectFullScreen.right = rectWholeDlg.right + g_iCurScreenWidth - rectClient.right;  
+		rectFullScreen.bottom = rectWholeDlg.bottom + g_iCurScreenHeight - rectClient.bottom;  
+  
+		//设置窗口对象参数，为全屏做好准备并进入全屏状态  
+		WINDOWPLACEMENT struWndpl;  
+		struWndpl.length = sizeof(WINDOWPLACEMENT);   
+		struWndpl.flags = 0;  
+		struWndpl.showCmd = SW_SHOWNORMAL;  
+		struWndpl.rcNormalPosition = rectFullScreen;  
+		SetWindowPlacement(&struWndpl);//该函数设置指定窗口的显示状态和显示大小位置等，是我们该程序最为重要的函数  
+  
+		//隐藏控件
+        GetDlgItem(IDC_STATE)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_START)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDOK)->ShowWindow(SW_HIDE);
+
+		//将PICTURE控件的坐标设为全屏大小  
+		GetDlgItem(IDC_IMAGE)->MoveWindow(CRect(0, 0, g_iCurScreenWidth, g_iCurScreenHeight));  
+		CWnd *pWnd;
+		pWnd = this->GetDlgItem(IDC_IMAGE);
+		CBrush br;
+		br.CreatePatternBrush(&bmp1);
+		CDC *pdc;
+		pdc = pWnd->GetDC();
+		CRect rect;
+		this->GetClientRect(&rect);
+		pdc->FillRect(&rect,&br);
+	}  
+	else  
+	{  
+		//显示控件
+        GetDlgItem(IDC_STATE)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_START)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDOK)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_IMAGE)->SetWindowPlacement(&m_struOldWndpPic);  
+		SetWindowPlacement(&m_struOldWndpl);  
+		CWnd *pWnd;
+		pWnd = this->GetDlgItem(IDC_IMAGE);
+		CBrush br;
+		br.CreatePatternBrush(&bmp2);
+		CDC *pdc;
+		pdc = pWnd->GetDC();
+		CRect rect;
+		pWnd->GetClientRect(&rect);
+		pdc->FillRect(&rect,&br);
+		bFullScreen = false;  
+	}  
+	CDialogEx::OnLButtonDblClk(nFlags, point);
 }

@@ -21,11 +21,13 @@ public:
 	CImage Img;					//显示监控区域
 	bool is_recv;
 	IN_ADDR ip_client;
-	
-	//unsigned long long file_size;
-	
 	CDC *pdc;
 
+	BOOL bFullScreen;  
+    CRect rectFullScreen;  
+    WINDOWPLACEMENT m_struOldWndpl;//结构中包含了有关窗口在屏幕上位置的信息  
+	WINDOWPLACEMENT m_struOldWndpPic;//PICTURE控件在屏幕上位置的信息  
+	CBitmap bmp1,bmp2;
 
 // 对话框数据
 	enum { IDD = IDD_MONITOR };
@@ -40,4 +42,7 @@ public:
 	afx_msg void OnBnClickedStart();
 	virtual BOOL OnInitDialog();
 	void showImage();
+//	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 };

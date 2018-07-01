@@ -34,6 +34,18 @@
     <None Include="res\Toolbar256.bmp">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="IDB_BITMAP1.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bitmap2.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="IDB_BITMAP2.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="IDB_BITMAP3.bmp">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RemoteMonitor.h">
