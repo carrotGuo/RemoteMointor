@@ -34,6 +34,10 @@ BEGIN_MESSAGE_MAP(CMonitor, CDialogEx)
 	ON_MESSAGE(WM_SOCKET,OnSocket)
 	ON_WM_GETMINMAXINFO()
 	ON_WM_LBUTTONDBLCLK()
+	ON_BN_CLICKED(IDC_START_RECORD, &CMonitor::OnBnClickedStartRecord)
+	ON_WM_CLOSE()
+	ON_BN_CLICKED(IDC_STOP_RECORD, &CMonitor::OnBnClickedStopRecord)
+	ON_BN_CLICKED(IDC_PLAY, &CMonitor::OnBnClickedPlay)
 END_MESSAGE_MAP()
 
 
@@ -79,7 +83,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				if(file_size>0){
 					DWORD dwNumberOfBytesRecv = 0;		//接收到的字节数
 					DWORD dwCountOfBytesRecv = 0;		//已接收文件大小
-					char Buffer[1024];
+					char Buffer[512];
 					CString filename = "Recv\\ImageOne.jpg";
 					HANDLE hFile = CreateFile(filename,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 					//循环读文件
@@ -91,10 +95,28 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 						dwCountOfBytesRecv += dwNumberOfBytesRecv;
 					}while(file_size-dwCountOfBytesRecv);
 					CloseHandle(hFile);
+
 					//将图片显示到控件
 					showImage();
+
+					//屏幕录制
+					if(is_record){
+						CString index;
+						index.Format("%d",record_num);
+						CString recordFilename = "Record\\Image"+index+".jpg";
+						record_num++;
+						if(!CopyFileA(filename,recordFilename,false)){
+							MessageBox("录制失败！");
+						}
+						if(record_num>200){
+							is_record = false;
+							MessageBox("录制成功，请点击播放按钮");
+							closesocket(socket_client);
+						}
+					}
 					if(SOCKET_ERROR == send(socket_client,(char*)&buff,sizeof(unsigned char)+1,NULL)){
-						MessageBox("消息发送错误");
+						send(socket_client,(char*)&buff,sizeof(unsigned char)+1,NULL);		//再次尝试发送
+						//MessageBox("消息发送错误");
 						return 1;
 					}
 				}
@@ -118,7 +140,8 @@ void CMonitor::showImage(){
 	pdc = pw->GetDC();
 	pdc->SetStretchBltMode(COLORONCOLOR);
 	Img.Draw(pdc->m_hDC,0,0,ww,wh);
-	pw->ReleaseDC(pdc);		//释放PDC
+	//pw->ReleaseDC(pdc);		//释放PDC
+	ReleaseDC(pdc);
 	Img.Destroy();
 }
 
@@ -193,15 +216,11 @@ BOOL CMonitor::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	
-	//窗口全屏 但是控件没有变化
-	//int cxScreen,cyScreen; 
-	//cxScreen=GetSystemMetrics(SM_CXSCREEN);
-	//cyScreen=GetSystemMetrics(SM_CYSCREEN);
-	//SetWindowPos(&wndTopMost,0,0,cxScreen,cyScreen,SWP_SHOWWINDOW);
-
 	has_client = false;
 	is_recv = false;
+	is_record = false;				//屏幕录制标志
+	record_num = 0;					//当前录制了多少张图
+	play_index = 0;					//当前播放到第几张图
 
 	//获取窗口Picture区域大小
 	pw = this->GetDlgItem(IDC_IMAGE);
@@ -214,55 +233,18 @@ BOOL CMonitor::OnInitDialog()
 	bmp1.LoadBitmapA(IDB_BITMAP2);
 	bmp2.LoadBitmapA(IDB_BITMAP3);
 
+	CString file = "Recv";
+	if(!PathIsDirectory(file)){
+		CreateDirectory(file,NULL);
+	}
+	CString record_file = "Record";
+		if(!PathIsDirectory(record_file)){
+		CreateDirectory(record_file,NULL);
+	}
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
 }
-
-//BOOL CMonitor::PreTranslateMessage(MSG* pMsg)
-//{
-//	// TODO: 在此添加专用代码和/或调用基类
-//	if (WM_LBUTTONDBLCLK == pMsg->message) {
-//		if (!bFullScreen) {  
-//			bFullScreen = true;  
-//			//获取系统屏幕宽高  
-//			int g_iCurScreenWidth = GetSystemMetrics(SM_CXSCREEN);  
-//			int g_iCurScreenHeight = GetSystemMetrics(SM_CYSCREEN);  
-//  
-//			//用m_struOldWndpl得到当前窗口的显示状态和窗体位置，以供退出全屏后使用  
-//			GetWindowPlacement(&m_struOldWndpl);  
-//			GetDlgItem(IDC_IMAGE)->GetWindowPlacement(&m_struOldWndpPic);  
-//      
-//			//计算出窗口全屏显示客户端所应该设置的窗口大小，主要为了将不需要显示的窗体边框等部分排除在屏幕外  
-//			CRect rectWholeDlg;  
-//			CRect rectClient;  
-//			GetWindowRect(&rectWholeDlg);//得到当前窗体的总的相对于屏幕的坐标  
-//			RepositionBars(0, 0xffff, AFX_IDW_PANE_FIRST, reposQuery, &rectClient);//得到客户区窗口坐标  
-//			ClientToScreen(&rectClient);//将客户区相对窗体的坐标转为相对屏幕坐标  
-//			//GetDlgItem(IDC_STATIC_PICSHOW)->GetWindowRect(rectClient);//得到PICTURE控件坐标  
-//  
-//			rectFullScreen.left = rectWholeDlg.left - rectClient.left;  
-//			rectFullScreen.top = rectWholeDlg.top - rectClient.top;  
-//			rectFullScreen.right = rectWholeDlg.right + g_iCurScreenWidth - rectClient.right;  
-//			rectFullScreen.bottom = rectWholeDlg.bottom + g_iCurScreenHeight - rectClient.bottom;  
-//  
-//			//设置窗口对象参数，为全屏做好准备并进入全屏状态  
-//			WINDOWPLACEMENT struWndpl;  
-//			struWndpl.length = sizeof(WINDOWPLACEMENT);   
-//			struWndpl.flags = 0;  
-//			struWndpl.showCmd = SW_SHOWNORMAL;  
-//			struWndpl.rcNormalPosition = rectFullScreen;  
-//			SetWindowPlacement(&struWndpl);//该函数设置指定窗口的显示状态和显示大小位置等，是我们该程序最为重要的函数  
-//  
-//			//将PICTURE控件的坐标设为全屏大小  
-//			GetDlgItem(IDC_IMAGE)->MoveWindow(CRect(0, 0, g_iCurScreenWidth, g_iCurScreenHeight));  
-//		} else {  
-//			GetDlgItem(IDC_IMAGE)->SetWindowPlacement(&m_struOldWndpPic);  
-//			SetWindowPlacement(&m_struOldWndpl);  
-//			bFullScreen = false;  
-//		}  
-//	}
-//	return CDialogEx::PreTranslateMessage(pMsg);
-//}
 
 
 void CMonitor::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
@@ -282,6 +264,7 @@ void CMonitor::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 
 void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
+	//全屏显示
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	if (!bFullScreen)  
 	{  
@@ -353,4 +336,117 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 		bFullScreen = false;  
 	}  
 	CDialogEx::OnLButtonDblClk(nFlags, point);
+}
+
+/**
+*	启动录制
+*/
+void CMonitor::OnBnClickedStartRecord()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	record_num = 0;
+	is_record = true;
+}
+
+
+void CMonitor::OnClose()
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	DeleteDirectory("Record"); 
+	CDialogEx::OnClose();
+}
+
+/**
+*	删除文件夹及以下文件
+*/
+bool CMonitor::DeleteDirectory( char* DirName){
+	HANDLE hFirstFile = NULL; 
+	WIN32_FIND_DATA FindData; 
+
+	char currdir[MAX_PATH] = {0};
+	sprintf(currdir, "%s\\*.*", DirName);
+
+	hFirstFile = ::FindFirstFile(currdir, &FindData); 
+	if( hFirstFile == INVALID_HANDLE_VALUE ) 
+	   return false;
+
+	BOOL bRes = true;
+
+	while(bRes) 
+	{ 
+	   bRes = ::FindNextFile(hFirstFile, &FindData);
+
+	   if( (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) //发现目录
+	   {
+		if( !strcmp(FindData.cFileName, ".") || !strcmp(FindData.cFileName, "..") ) //.或..
+		 continue;
+		else
+		{
+		 char tmppath[MAX_PATH] = {0};
+		 sprintf(tmppath, "%s\\%s", DirName, FindData.cFileName);
+    
+		 DeleteDirectory(tmppath);
+		}
+	   }
+	   else               //发现文件
+	   {
+		char tmppath[MAX_PATH] = {0};
+		sprintf(tmppath, "%s\\%s", DirName, FindData.cFileName);
+		::DeleteFile(tmppath);    
+	   }
+	} 
+	::FindClose(hFirstFile);
+	if(!RemoveDirectory(DirName))
+	{
+	   return false ;
+	}
+	return true;
+}
+
+/**
+*	结束录屏
+*/
+void CMonitor::OnBnClickedStopRecord()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	is_record = false;
+	//closesocket(socket_client);
+}
+
+/**
+*	开始播放  断开socket
+*/
+void CMonitor::OnBnClickedPlay()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	//使用线程睡眠方式播放
+	closesocket(socket_client);
+	play_index = 0;
+	HANDLE hThread = CreateThread(NULL,0,Play,this,0,NULL);
+	//关闭该接收线程句柄，释放引用计数
+	CloseHandle(hThread);
+}
+
+DWORD WINAPI CMonitor::Play(LPVOID lpParameter){
+	CMonitor *pThis = (CMonitor*)lpParameter;
+	pThis->pw = pThis->GetDlgItem(IDC_IMAGE);
+	while(pThis->play_index<pThis->record_num){		//未播放结束则一直播放下一张图片
+		CString index;
+		index.Format("%d",pThis->play_index);
+		CString recordFilename = "Record\\Image"+index+".jpg";
+		if(pThis->Img!=NULL){
+			pThis->Img.Destroy();
+		}
+		pThis->Img.Load(recordFilename);
+		//CDC *pdc;
+		pThis->pdc = pThis->pw->GetDC();
+		pThis->pdc->SetStretchBltMode(COLORONCOLOR);
+		pThis->Img.Draw(pThis->pdc->m_hDC,0,0,pThis->ww,pThis->wh);
+		//pw->ReleaseDC(pdc);		//释放PDC
+		pThis->ReleaseDC(pThis->pdc);
+		pThis->Img.Destroy();
+		pThis->play_index++;
+		Sleep(100);
+	}
+	return 0;
 }

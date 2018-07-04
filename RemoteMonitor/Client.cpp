@@ -33,8 +33,8 @@ BEGIN_MESSAGE_MAP(CClient, CDialogEx)
 		ON_MESSAGE(WM_SOCKET,OnSocket)
 		ON_BN_CLICKED(IDC_CONNECT, &CClient::OnBnClickedConnect)
 		ON_BN_CLICKED(IDC_STARTMONITOR, &CClient::OnBnClickedStartmonitor)
-		ON_WM_TIMER()
 		ON_WM_DESTROY()
+		ON_BN_CLICKED(IDC_STOP, &CClient::OnBnClickedStop)
 END_MESSAGE_MAP()
 
 
@@ -67,6 +67,12 @@ BOOL CClient::OnInitDialog()
 	// TODO:  在此添加额外的初始化
 	link_flag = false;
 	load_flag = false;
+
+	CString file = "Screen";
+	if(!PathIsDirectory(file)){
+		CreateDirectory(file,NULL);
+	}
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
 }
@@ -126,7 +132,9 @@ void CClient::CaptureMultiframe(){
 	CString filename;
 	filename = "Screen\\ImageOne.jpg";
 	CFile file;
-	pDC = this->GetDesktopWindow()->GetDC();	//获取当前整个屏幕的DC
+	CWnd *pWnd;
+	pWnd = this->GetDesktopWindow();
+	pDC = pWnd->GetDC();	//获取当前整个屏幕的DC
 	int BitPerPixel = pDC->GetDeviceCaps(BITSPIXEL);	//获取颜色模式
 	int width = pDC->GetDeviceCaps(HORZRES);	//获取水平分辨率
 	int height = pDC->GetDeviceCaps(VERTRES);	//获取垂直分辨率
@@ -149,6 +157,7 @@ void CClient::CaptureMultiframe(){
 	Img.Detach();
 	memBitmap.DeleteObject();
 	memDC.DeleteDC();
+	pWnd->ReleaseDC(pDC);
 	Img.Destroy();
 }
 
@@ -156,38 +165,9 @@ void CClient::CaptureMultiframe(){
 void CClient::OnBnClickedStartmonitor()
 {
 	// TODO: 在此添加控件通知处理程序代码
-		//HANDLE hThread = CreateThread(NULL,0,ThreadProc,this,0,NULL);
-		//关闭该接收线程句柄，释放引用计数
-		//CloseHandle(hThread);
-
-	//sendImg();			//先发送第一张屏幕  接下来等待接收到监控端读取完图片的信息，再次截取图片发送
 	HANDLE hThread = CreateThread(NULL,0,sendImg,this,0,NULL);
 	//关闭该接收线程句柄，释放引用计数
 	CloseHandle(hThread);
-}
-
-DWORD WINAPI CClient ::ThreadProc(LPVOID lpParameter) {
-	CClient *pThis = (CClient*)lpParameter;
-	CString filename = "Screen\\ImageOne.jpg";	//发送的文件名称
-	HANDLE hFile;
-	unsigned long long file_size = 0;
-	char Buffer[1024];							//缓存区大小
-	DWORD dwNumberOfBytesRead;					//读取文件的字节数
-	
-	while(1){
-		pThis->CaptureMultiframe();
-		hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄
-		file_size = GetFileSize(hFile,NULL);		//获取文件大小
-		send(pThis->socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL);									//先发送文件大小
-		//发送文件(读到的字节大于0就循环发送)
-		do{
-			::ReadFile(hFile,Buffer,sizeof(Buffer),&dwNumberOfBytesRead,NULL);										//读文件某一部分到dwNumberOfBytesRead
-			::send(pThis->socket_client,Buffer,dwNumberOfBytesRead,0);														//发送文件
-		}while(dwNumberOfBytesRead);
-		CloseHandle(hFile);
-		Sleep(100);
-	}
-	return 0;
 }
 
 /**
@@ -200,7 +180,7 @@ DWORD WINAPI CClient::sendImg(LPVOID lpParameter){
 	CString filename = "Screen\\ImageOne.jpg";	//发送的文件名称
 	HANDLE hFile;
 	unsigned long long file_size = 0;
-	char Buffer[1024];							//缓存区大小
+	char Buffer[512];							//缓存区大小
 	DWORD dwNumberOfBytesRead;					//读取文件的字节数
 	
 	hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄
@@ -215,28 +195,17 @@ DWORD WINAPI CClient::sendImg(LPVOID lpParameter){
 	return 0;
 }
 
-/**
-*	定时检测屏幕是否有变化 有变化则发送新的图片
-*/
-void CClient::OnTimer(UINT_PTR nIDEvent)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (!send_flag) {
-		//CaptureMultiframe();
-		//启动一个线程发送文件
-		HANDLE hThread = CreateThread(NULL,0,ThreadProc,this,0,NULL);
-		//关闭该接收线程句柄，释放引用计数
-		CloseHandle(hThread);
-	}
-
-	CDialogEx::OnTimer(nIDEvent);
-}
-
 
 void CClient::OnDestroy()
 {
 	CDialogEx::OnDestroy();
 
 	// TODO: 在此处添加消息处理程序代码
-	this->KillTimer(1);		//结束远程的任务
+}
+
+
+void CClient::OnBnClickedStop()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	closesocket(socket_client);
 }

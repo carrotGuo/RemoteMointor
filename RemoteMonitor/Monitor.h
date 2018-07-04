@@ -22,8 +22,11 @@ public:
 	bool is_recv;
 	IN_ADDR ip_client;
 	CDC *pdc;
+	bool is_record;
+	int record_num;
+	int play_index;
 
-	BOOL bFullScreen;  
+	bool bFullScreen;  
     CRect rectFullScreen;  
     WINDOWPLACEMENT m_struOldWndpl;//结构中包含了有关窗口在屏幕上位置的信息  
 	WINDOWPLACEMENT m_struOldWndpPic;//PICTURE控件在屏幕上位置的信息  
@@ -42,7 +45,12 @@ public:
 	afx_msg void OnBnClickedStart();
 	virtual BOOL OnInitDialog();
 	void showImage();
-//	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+	afx_msg void OnBnClickedStartRecord();
+	afx_msg void OnClose();
+	bool DeleteDirectory( char* DirName);
+	afx_msg void OnBnClickedStopRecord();
+	afx_msg void OnBnClickedPlay();
+	static DWORD WINAPI Play(LPVOID lpParameter);
 };
