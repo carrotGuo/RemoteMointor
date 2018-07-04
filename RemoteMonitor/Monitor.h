@@ -25,6 +25,7 @@ public:
 	bool is_record;
 	int record_num;
 	int play_index;
+	long last_time;
 
 	bool bFullScreen;  
     CRect rectFullScreen;  
@@ -53,4 +54,5 @@ public:
 	afx_msg void OnBnClickedStopRecord();
 	afx_msg void OnBnClickedPlay();
 	static DWORD WINAPI Play(LPVOID lpParameter);
+	int isConnect(SOCKET socket);
 };

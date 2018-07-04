@@ -49,7 +49,7 @@ END_MESSAGE_MAP()
 LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 	switch(lParam){
 		case FD_ACCEPT:{
-			if(has_client){
+			if(isConnect(socket_client)){
 				break;
 			}
 			SOCKADDR_IN addr;
@@ -60,7 +60,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				return -1;
 			} else {
 				//获取对方IP
-				m_link = "与";
+				m_link = "与被监视端";
 				m_link += inet_ntoa(addr.sin_addr);
 				m_link += "连接成功";
 				UpdateData(false);
@@ -74,6 +74,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				bool can_send = true;
 				byte buff = (unsigned char)can_send;
 				unsigned long long file_size = 0;
+				last_time = GetTickCount();
 				//接收文件大小并保存到file_size
 				if(!recv(socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL)){
 					MessageBox("服务器接收文件大小时出错");
@@ -111,6 +112,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 						if(record_num>200){
 							is_record = false;
 							MessageBox("录制成功，请点击播放按钮");
+							//WSACleanup();				//卸载winsock动态库
 							closesocket(socket_client);
 						}
 					}
@@ -207,6 +209,7 @@ void CMonitor::OnBnClickedStart()
 	}
 
 	m_link = "启动监视状态中，等待被监视端连接";
+	this->GetDlgItem(IDC_START)->EnableWindow(false);		//不可再次启动监视器
 	UpdateData(false);
 }
 
@@ -344,8 +347,13 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 void CMonitor::OnBnClickedStartRecord()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	record_num = 0;
-	is_record = true;
+	if(GetTickCount()-last_time<=1000){
+		record_num = 0;
+		is_record = true;
+	} else {
+		MessageBox("当前无被监控端接入，无法录制！");
+	}
+
 }
 
 
@@ -422,6 +430,8 @@ void CMonitor::OnBnClickedPlay()
 	// TODO: 在此添加控件通知处理程序代码
 	//使用线程睡眠方式播放
 	closesocket(socket_client);
+	WSACleanup();				//卸载winsock动态库
+	this->GetDlgItem(IDC_START)->EnableWindow(true);		//可重新启动监视器
 	play_index = 0;
 	HANDLE hThread = CreateThread(NULL,0,Play,this,0,NULL);
 	//关闭该接收线程句柄，释放引用计数
@@ -451,3 +461,20 @@ DWORD WINAPI CMonitor::Play(LPVOID lpParameter){
 	}
 	return 0;
 }
+
+int CMonitor::isConnect(SOCKET clientSocket){
+	 bool ret = false;  
+	 HANDLE closeEvent = WSACreateEvent();  
+	 WSAEventSelect(clientSocket, closeEvent, FD_CLOSE);  
+  
+	 DWORD dwRet = WaitForSingleObject(closeEvent, 0);  
+   
+	 if(dwRet == WSA_WAIT_EVENT_0)  
+	  ret = true;  
+	 else if(dwRet == WSA_WAIT_TIMEOUT)  
+	  ret = false;  
+  
+	 WSACloseEvent(closeEvent);  
+	 return ret;  
+}
+
