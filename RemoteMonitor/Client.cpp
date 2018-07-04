@@ -55,6 +55,12 @@ LRESULT CClient::OnSocket(WPARAM wParam, LPARAM lParam){
 			}
 			break;		 
 		}
+		case FD_CLOSE : {
+			GetDlgItem(IDC_CONNECT)->EnableWindow(true);
+			GetDlgItem(IDC_STARTMONITOR)->EnableWindow(false);
+			GetDlgItem(IDC_STOP)->EnableWindow(false);
+			break;				
+		}
 	}
 	return 1;
 }
@@ -65,13 +71,17 @@ BOOL CClient::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	link_flag = false;
+	link_flag = false;				//与监视端连接标志
 	load_flag = false;
 
 	CString file = "Screen";
 	if(!PathIsDirectory(file)){
 		CreateDirectory(file,NULL);
 	}
+
+	GetDlgItem(IDC_CONNECT)->EnableWindow(true);
+	GetDlgItem(IDC_STARTMONITOR)->EnableWindow(false);
+	GetDlgItem(IDC_STOP)->EnableWindow(false);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
@@ -114,12 +124,18 @@ void CClient::OnBnClickedConnect()
 		return;
 	}
 
-	if( WSAAsyncSelect(socket_client,this->m_hWnd,WM_SOCKET,FD_READ))
+	if( WSAAsyncSelect(socket_client,this->m_hWnd,WM_SOCKET,FD_READ|FD_CLOSE))
 	{
 		MessageBox("异步设置出错");
 		return;
 	}
+	link_flag = true;
 	send_flag=true;
+
+	GetDlgItem(IDC_CONNECT)->EnableWindow(false);
+	GetDlgItem(IDC_STARTMONITOR)->EnableWindow(true);
+	GetDlgItem(IDC_STOP)->EnableWindow(false);
+
 	AfxMessageBox(_T("连接服务器成功！"));
 
 }
@@ -164,6 +180,9 @@ void CClient::CaptureMultiframe(){
 
 void CClient::OnBnClickedStartmonitor()
 {
+	GetDlgItem(IDC_CONNECT)->EnableWindow(false);
+	GetDlgItem(IDC_STARTMONITOR)->EnableWindow(false);
+	GetDlgItem(IDC_STOP)->EnableWindow(true);
 	// TODO: 在此添加控件通知处理程序代码
 	HANDLE hThread = CreateThread(NULL,0,sendImg,this,0,NULL);
 	//关闭该接收线程句柄，释放引用计数
@@ -207,5 +226,9 @@ void CClient::OnDestroy()
 void CClient::OnBnClickedStop()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	GetDlgItem(IDC_CONNECT)->EnableWindow(true);
+	GetDlgItem(IDC_STARTMONITOR)->EnableWindow(false);
+	GetDlgItem(IDC_STOP)->EnableWindow(false);
 	closesocket(socket_client);
+	WSACleanup();				//卸载winsock动态库
 }

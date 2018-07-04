@@ -49,7 +49,8 @@ END_MESSAGE_MAP()
 LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 	switch(lParam){
 		case FD_ACCEPT:{
-			if(isConnect(socket_client)){
+			if(has_client || !can_accept){
+				MessageBox("客户端无法连接");
 				break;
 			}
 			SOCKADDR_IN addr;
@@ -57,6 +58,9 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 			socket_client = accept(socket_server,(sockaddr *)&addr,&len);
 			if(INVALID_SOCKET == socket_client){
 				MessageBox("客户端套接字创建出错");
+				this->GetDlgItem(IDC_START_RECORD)->EnableWindow(false);
+				this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+				this->GetDlgItem(IDC_PLAY)->EnableWindow(false);
 				return -1;
 			} else {
 				//获取对方IP
@@ -65,6 +69,10 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				m_link += "连接成功";
 				UpdateData(false);
 				has_client = true;
+				can_accept = false;
+				this->GetDlgItem(IDC_START_RECORD)->EnableWindow(true);
+				this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+				this->GetDlgItem(IDC_PLAY)->EnableWindow(false);
 				break;
 			}
 		}
@@ -74,7 +82,6 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				bool can_send = true;
 				byte buff = (unsigned char)can_send;
 				unsigned long long file_size = 0;
-				last_time = GetTickCount();
 				//接收文件大小并保存到file_size
 				if(!recv(socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL)){
 					MessageBox("服务器接收文件大小时出错");
@@ -114,6 +121,11 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 							MessageBox("录制成功，请点击播放按钮");
 							//WSACleanup();				//卸载winsock动态库
 							closesocket(socket_client);
+							has_client = false;
+							can_accept = true;
+							this->GetDlgItem(IDC_START_RECORD)->EnableWindow(true);
+							this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+							this->GetDlgItem(IDC_PLAY)->EnableWindow(true);
 						}
 					}
 					if(SOCKET_ERROR == send(socket_client,(char*)&buff,sizeof(unsigned char)+1,NULL)){
@@ -124,6 +136,17 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				}
 				is_recv = false;
 			}
+			break;
+		}
+		case FD_CLOSE :{
+			MessageBox("被监视端已断开连接");
+			has_client = false;
+			can_accept = true;		//接受其他客户端连接
+			this->GetDlgItem(IDC_START_RECORD)->EnableWindow(false);
+			this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+			this->GetDlgItem(IDC_PLAY)->EnableWindow(false);
+			m_link = "监视端正在等待被监视端连接... ...";
+			UpdateData(false);
 			break;
 		}
 	}
@@ -202,13 +225,13 @@ void CMonitor::OnBnClickedStart()
 	}
 
 	////=========设置异步套接字启动套接字窗口消息映射==========
-	if( WSAAsyncSelect(socket_server,this->m_hWnd,WM_SOCKET,FD_ACCEPT | FD_READ))
+	if( WSAAsyncSelect(socket_server,this->m_hWnd,WM_SOCKET,FD_ACCEPT | FD_READ | FD_CLOSE))
 	{
 		MessageBox("异步设置出错");
 		return;
 	}
 
-	m_link = "启动监视状态中，等待被监视端连接";
+	m_link = "监视端已启动，等待被监视端连接... ...";
 	this->GetDlgItem(IDC_START)->EnableWindow(false);		//不可再次启动监视器
 	UpdateData(false);
 }
@@ -222,6 +245,7 @@ BOOL CMonitor::OnInitDialog()
 	has_client = false;				//是否已有客户端连接
 	is_recv = false;				//是否正在接收文件 如果正在接收图片  则不进行其他socket接收 防止读文件失败
 	is_record = false;				//屏幕录制标志
+	can_accept = true;				//是否接受其他客户端连接(回放的时候虽然没有客户端连接 但是不能让其他客户端连接上来  播放结束才可以)
 	record_num = 0;					//当前录制了多少张图
 	play_index = 0;					//当前播放到第几张图
 
@@ -231,11 +255,14 @@ BOOL CMonitor::OnInitDialog()
 	pw->GetClientRect(&rect);
 	ww = rect.Width();
 	wh = rect.Height();
+	oww = ww;
+	owh = wh;
 
 	bFullScreen = false;
 	bmp1.LoadBitmapA(IDB_BITMAP2);
 	bmp2.LoadBitmapA(IDB_BITMAP3);
 
+	//创建文件夹
 	CString file = "Recv";
 	if(!PathIsDirectory(file)){
 		CreateDirectory(file,NULL);
@@ -244,6 +271,11 @@ BOOL CMonitor::OnInitDialog()
 		if(!PathIsDirectory(record_file)){
 		CreateDirectory(record_file,NULL);
 	}
+
+	//根据连接状态控制控件是否可点击
+	this->GetDlgItem(IDC_START_RECORD)->EnableWindow(false);
+	this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+	this->GetDlgItem(IDC_PLAY)->EnableWindow(false);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
@@ -306,9 +338,14 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
         GetDlgItem(IDC_STATE)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_START)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDOK)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_START_RECORD)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_STOP_RECORD)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_PLAY)->ShowWindow(SW_HIDE);
 
 		//将PICTURE控件的坐标设为全屏大小  
 		GetDlgItem(IDC_IMAGE)->MoveWindow(CRect(0, 0, g_iCurScreenWidth, g_iCurScreenHeight));  
+		ww = g_iCurScreenWidth;
+		wh = g_iCurScreenHeight;
 		CWnd *pWnd;
 		pWnd = this->GetDlgItem(IDC_IMAGE);
 		CBrush br;
@@ -325,7 +362,13 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
         GetDlgItem(IDC_STATE)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_START)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDOK)->ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_IMAGE)->SetWindowPlacement(&m_struOldWndpPic);  
+		GetDlgItem(IDC_START_RECORD)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_STOP_RECORD)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_PLAY)->ShowWindow(SW_SHOW);
+
+		GetDlgItem(IDC_IMAGE)->SetWindowPlacement(&m_struOldWndpPic);
+		ww = oww;
+		wh = owh;
 		SetWindowPlacement(&m_struOldWndpl);  
 		CWnd *pWnd;
 		pWnd = this->GetDlgItem(IDC_IMAGE);
@@ -347,13 +390,17 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 void CMonitor::OnBnClickedStartRecord()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if(GetTickCount()-last_time<=1000){
+	if (has_client) {
+		DeleteDirectory("Record");			//先清空文件夹
+		CreateDirectory("Record",NULL);		//再次创建文件夹 可以让用户再次录屏
 		record_num = 0;
 		is_record = true;
+		this->GetDlgItem(IDC_START_RECORD)->EnableWindow(false);
+		this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(true);
+		this->GetDlgItem(IDC_PLAY)->EnableWindow(false);
 	} else {
-		MessageBox("当前无被监控端接入，无法录制！");
+		MessageBox("当前未连接被监视端，无法录屏");
 	}
-
 }
 
 
@@ -418,8 +465,16 @@ bool CMonitor::DeleteDirectory( char* DirName){
 void CMonitor::OnBnClickedStopRecord()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	is_record = false;
-	//closesocket(socket_client);
+	if (has_client) {
+		is_record = false;
+		//closesocket(socket_client);
+		this->GetDlgItem(IDC_START_RECORD)->EnableWindow(true);
+		this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+		this->GetDlgItem(IDC_PLAY)->EnableWindow(true);
+	} else {
+		MessageBox("未连接被监视端");
+	}
+
 }
 
 /**
@@ -430,8 +485,15 @@ void CMonitor::OnBnClickedPlay()
 	// TODO: 在此添加控件通知处理程序代码
 	//使用线程睡眠方式播放
 	closesocket(socket_client);
-	WSACleanup();				//卸载winsock动态库
-	this->GetDlgItem(IDC_START)->EnableWindow(true);		//可重新启动监视器
+	m_link = "监视端已启动，等待被监视端连接... ...";
+	UpdateData(false);
+	//WSACleanup();				//卸载winsock动态库
+	has_client = false;
+	can_accept = false;
+	this->GetDlgItem(IDC_START_RECORD)->EnableWindow(false);
+	this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+	this->GetDlgItem(IDC_PLAY)->EnableWindow(false);
+	//this->GetDlgItem(IDC_START)->EnableWindow(true);		//可重新启动监视器
 	play_index = 0;
 	HANDLE hThread = CreateThread(NULL,0,Play,this,0,NULL);
 	//关闭该接收线程句柄，释放引用计数
@@ -459,22 +521,9 @@ DWORD WINAPI CMonitor::Play(LPVOID lpParameter){
 		pThis->play_index++;
 		Sleep(100);
 	}
+	pThis->GetDlgItem(IDC_PLAY)->EnableWindow(true);		//播放结束  可以按再次播放
+	pThis->can_accept = true;								//可接受其他客户端连接
 	return 0;
 }
 
-int CMonitor::isConnect(SOCKET clientSocket){
-	 bool ret = false;  
-	 HANDLE closeEvent = WSACreateEvent();  
-	 WSAEventSelect(clientSocket, closeEvent, FD_CLOSE);  
-  
-	 DWORD dwRet = WaitForSingleObject(closeEvent, 0);  
-   
-	 if(dwRet == WSA_WAIT_EVENT_0)  
-	  ret = true;  
-	 else if(dwRet == WSA_WAIT_TIMEOUT)  
-	  ret = false;  
-  
-	 WSACloseEvent(closeEvent);  
-	 return ret;  
-}
 

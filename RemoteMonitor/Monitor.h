@@ -18,6 +18,7 @@ public:
 	bool has_client;			//是否已有被监视端连接的标志
 	CWnd *pw;
 	int ww,wh;					//窗口宽高
+	int oww,owh;				//小屏窗口大小
 	CImage Img;					//显示监控区域
 	bool is_recv;
 	IN_ADDR ip_client;
@@ -25,7 +26,7 @@ public:
 	bool is_record;
 	int record_num;
 	int play_index;
-	long last_time;
+	bool can_accept;			//回放的时候不能接受其他客户端连接
 
 	bool bFullScreen;  
     CRect rectFullScreen;  
@@ -54,5 +55,4 @@ public:
 	afx_msg void OnBnClickedStopRecord();
 	afx_msg void OnBnClickedPlay();
 	static DWORD WINAPI Play(LPVOID lpParameter);
-	int isConnect(SOCKET socket);
 };
