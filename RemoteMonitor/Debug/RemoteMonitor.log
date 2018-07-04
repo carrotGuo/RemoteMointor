@@ -1,4 +1,4 @@
-﻿生成启动时间为 2018-07-04 10:31:52。
+﻿生成启动时间为 2018-07-04 10:50:51。
      1>项目“F:\C++\RemoteMonitor\RemoteMonitor\RemoteMonitor.vcxproj”在节点 2 上(build 个目标)。
      1>InitializeBuildStatus:
          正在创建“Debug\RemoteMonitor.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
@@ -8,11 +8,11 @@
          Monitor.cpp
      1>f:\c++\remotemonitor\remotemonitor\monitor.h(4): warning C4005: “WINAPI”: 宏重定义
                  c:\program files (x86)\microsoft sdks\windows\v7.0a\include\windef.h(124) : 参见“WINAPI”的前一个定义
-     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(367): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(368): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\软件\visiostudio2010\vc\include\stdio.h(371) : 参见“sprintf”的声明
-     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(386): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(387): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\软件\visiostudio2010\vc\include\stdio.h(371) : 参见“sprintf”的声明
-     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(394): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(395): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\软件\visiostudio2010\vc\include\stdio.h(371) : 参见“sprintf”的声明
        ResourceCompile:
          所有输出均为最新。
@@ -42,4 +42,4 @@
 
 生成成功。
 
-已用时间 00:00:00.85
+已用时间 00:00:01.16

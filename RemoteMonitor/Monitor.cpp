@@ -216,8 +216,8 @@ BOOL CMonitor::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	has_client = false;
-	is_recv = false;
+	has_client = false;				//是否已有客户端连接
+	is_recv = false;				//是否正在接收文件 如果正在接收图片  则不进行其他socket接收 防止读文件失败
 	is_record = false;				//屏幕录制标志
 	record_num = 0;					//当前录制了多少张图
 	play_index = 0;					//当前播放到第几张图
@@ -352,6 +352,7 @@ void CMonitor::OnBnClickedStartRecord()
 void CMonitor::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	play_index = record_num;			//让播放录屏的子线程自动退出  再执行删除文件操作
 	DeleteDirectory("Record"); 
 	CDialogEx::OnClose();
 }
