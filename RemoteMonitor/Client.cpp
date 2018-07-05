@@ -199,7 +199,7 @@ DWORD WINAPI CClient::sendImg(LPVOID lpParameter){
 	CString filename = "Screen\\ImageOne.jpg";	//发送的文件名称
 	HANDLE hFile;
 	unsigned long long file_size = 0;
-	char Buffer[512];							//缓存区大小
+	char Buffer[1024];							//缓存区大小
 	DWORD dwNumberOfBytesRead;					//读取文件的字节数
 	
 	hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄

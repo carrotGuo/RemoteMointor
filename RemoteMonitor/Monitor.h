@@ -27,6 +27,8 @@ public:
 	int record_num;
 	int play_index;
 	bool can_accept;			//回放的时候不能接受其他客户端连接
+	bool is_play;
+	bool full_flag;
 
 	bool bFullScreen;  
     CRect rectFullScreen;  

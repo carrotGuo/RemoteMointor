@@ -79,6 +79,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 		case FD_READ:{
 			if(!is_recv){
 				is_recv = true;
+				full_flag = true;
 				bool can_send = true;
 				byte buff = (unsigned char)can_send;
 				unsigned long long file_size = 0;
@@ -91,7 +92,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 				if(file_size>0){
 					DWORD dwNumberOfBytesRecv = 0;		//接收到的字节数
 					DWORD dwCountOfBytesRecv = 0;		//已接收文件大小
-					char Buffer[512];
+					char Buffer[1024];
 					CString filename = "Recv\\ImageOne.jpg";
 					HANDLE hFile = CreateFile(filename,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 					//循环读文件
@@ -117,12 +118,18 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 							MessageBox("录制失败！");
 						}
 						if(record_num>200){
-							is_record = false;
+							/*is_record = false;
 							MessageBox("录制成功，请点击播放按钮");
 							//WSACleanup();				//卸载winsock动态库
 							closesocket(socket_client);
 							has_client = false;
 							can_accept = true;
+							this->GetDlgItem(IDC_START_RECORD)->EnableWindow(true);
+							this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
+							this->GetDlgItem(IDC_PLAY)->EnableWindow(true);*/
+							is_record = false;
+							MessageBox("录制成功，请点击播放按钮");
+							//closesocket(socket_client);
 							this->GetDlgItem(IDC_START_RECORD)->EnableWindow(true);
 							this->GetDlgItem(IDC_STOP_RECORD)->EnableWindow(false);
 							this->GetDlgItem(IDC_PLAY)->EnableWindow(true);
@@ -140,6 +147,7 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 		}
 		case FD_CLOSE :{
 			MessageBox("被监视端已断开连接");
+			full_flag = false;
 			has_client = false;
 			can_accept = true;		//接受其他客户端连接
 			this->GetDlgItem(IDC_START_RECORD)->EnableWindow(false);
@@ -154,7 +162,6 @@ LRESULT CMonitor::OnSocket(WPARAM wParam, LPARAM lParam){
 }
 
 void CMonitor::showImage(){
-
 	pw = this->GetDlgItem(IDC_IMAGE);
 	CString filename = "RECV\\ImageOne.jpg";
 	if(Img!=NULL){
@@ -166,7 +173,7 @@ void CMonitor::showImage(){
 	pdc->SetStretchBltMode(COLORONCOLOR);
 	Img.Draw(pdc->m_hDC,0,0,ww,wh);
 	//pw->ReleaseDC(pdc);		//释放PDC
-	ReleaseDC(pdc);
+	pw->ReleaseDC(pdc);
 	Img.Destroy();
 }
 
@@ -246,6 +253,8 @@ BOOL CMonitor::OnInitDialog()
 	is_recv = false;				//是否正在接收文件 如果正在接收图片  则不进行其他socket接收 防止读文件失败
 	is_record = false;				//屏幕录制标志
 	can_accept = true;				//是否接受其他客户端连接(回放的时候虽然没有客户端连接 但是不能让其他客户端连接上来  播放结束才可以)
+	is_play = false;
+	full_flag = false;
 	record_num = 0;					//当前录制了多少张图
 	play_index = 0;					//当前播放到第几张图
 
@@ -301,6 +310,7 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	//全屏显示
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
 	if (!bFullScreen)  
 	{  
 		bFullScreen = true;  
@@ -308,6 +318,12 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 		//获取系统屏幕宽高  
 		int g_iCurScreenWidth = GetSystemMetrics(SM_CXSCREEN);  
 		int g_iCurScreenHeight = GetSystemMetrics(SM_CYSCREEN);  
+
+		ww = g_iCurScreenWidth;
+		wh = g_iCurScreenHeight;
+		if (full_flag) {
+			showImage();
+		}
   
 		//用m_struOldWndpl得到当前窗口的显示状态和窗体位置，以供退出全屏后使用  
 		GetWindowPlacement(&m_struOldWndpl);  
@@ -344,20 +360,30 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 		//将PICTURE控件的坐标设为全屏大小  
 		GetDlgItem(IDC_IMAGE)->MoveWindow(CRect(0, 0, g_iCurScreenWidth, g_iCurScreenHeight));  
-		ww = g_iCurScreenWidth;
-		wh = g_iCurScreenHeight;
-		CWnd *pWnd;
-		pWnd = this->GetDlgItem(IDC_IMAGE);
-		CBrush br;
-		br.CreatePatternBrush(&bmp1);
-		CDC *pdc;
-		pdc = pWnd->GetDC();
-		CRect rect;
-		this->GetClientRect(&rect);
-		pdc->FillRect(&rect,&br);
+		if(!has_client){
+			CWnd *pWnd;
+			pWnd = this->GetDlgItem(IDC_IMAGE);
+			CBrush br;
+			br.CreatePatternBrush(&bmp1);
+			CDC *pdc;
+			pdc = pWnd->GetDC();
+			CRect rect;
+			this->GetClientRect(&rect);
+			pdc->FillRect(&rect,&br);
+			br.DeleteObject();
+			pWnd->ReleaseDC(pdc);
+		}
+
 	}  
 	else  
 	{  
+		bFullScreen = false;  
+		ww = oww;
+		wh = owh;
+		if (full_flag) {
+			showImage();
+		}
+
 		//显示控件
         GetDlgItem(IDC_STATE)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_START)->ShowWindow(SW_SHOW);
@@ -367,19 +393,20 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 		GetDlgItem(IDC_PLAY)->ShowWindow(SW_SHOW);
 
 		GetDlgItem(IDC_IMAGE)->SetWindowPlacement(&m_struOldWndpPic);
-		ww = oww;
-		wh = owh;
 		SetWindowPlacement(&m_struOldWndpl);  
-		CWnd *pWnd;
-		pWnd = this->GetDlgItem(IDC_IMAGE);
-		CBrush br;
-		br.CreatePatternBrush(&bmp2);
-		CDC *pdc;
-		pdc = pWnd->GetDC();
-		CRect rect;
-		pWnd->GetClientRect(&rect);
-		pdc->FillRect(&rect,&br);
-		bFullScreen = false;  
+		if (!has_client) {
+			CWnd *pWnd;
+			pWnd = this->GetDlgItem(IDC_IMAGE);
+			CBrush br;
+			br.CreatePatternBrush(&bmp2);
+			CDC *pdc;
+			pdc = pWnd->GetDC();
+			CRect rect;
+			pWnd->GetClientRect(&rect);
+			pdc->FillRect(&rect,&br);
+			br.DeleteObject();
+			pWnd->ReleaseDC(pdc);
+		}
 	}  
 	CDialogEx::OnLButtonDblClk(nFlags, point);
 }
@@ -486,6 +513,7 @@ void CMonitor::OnBnClickedPlay()
 	//使用线程睡眠方式播放
 	closesocket(socket_client);
 	m_link = "监视端已启动，等待被监视端连接... ...";
+	full_flag = false;
 	UpdateData(false);
 	//WSACleanup();				//卸载winsock动态库
 	has_client = false;
