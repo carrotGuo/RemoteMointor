@@ -79,6 +79,8 @@ BOOL CClient::OnInitDialog()
 		CreateDirectory(file,NULL);
 	}
 
+	old_size = 0;
+
 	GetDlgItem(IDC_CONNECT)->EnableWindow(true);
 	GetDlgItem(IDC_STARTMONITOR)->EnableWindow(false);
 	GetDlgItem(IDC_STOP)->EnableWindow(false);
@@ -204,6 +206,14 @@ DWORD WINAPI CClient::sendImg(LPVOID lpParameter){
 	
 	hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄
 	file_size = GetFileSize(hFile,NULL);		//获取文件大小
+
+	while(file_size == pThis->old_size){
+		CloseHandle(hFile);
+		pThis->CaptureMultiframe();		//图片同样  则继续截图
+		hFile = CreateFile(filename,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);	//创建文件句柄
+		file_size = GetFileSize(hFile,NULL);		//获取文件大小
+	}
+	pThis->old_size = file_size;
 	send(pThis->socket_client,(char*)&file_size,sizeof(unsigned long long)+1,NULL);									//先发送文件大小
 	//发送文件(读到的字节大于0就循环发送)
 	do{

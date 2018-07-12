@@ -17,6 +17,7 @@ public:
 	int ww,wh;						//屏幕宽度和高度
 	CImage Img;
 	bool load_flag;
+	unsigned long long old_size;	//上一次上传文件的大小
 	//int image_index;			//当前发送到第几张图片
 
 // 对话框数据
