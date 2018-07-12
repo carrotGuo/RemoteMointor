@@ -268,8 +268,8 @@ BOOL CMonitor::OnInitDialog()
 	owh = wh;
 
 	bFullScreen = false;
-	bmp1.LoadBitmapA(IDB_BITMAP2);
-	bmp2.LoadBitmapA(IDB_BITMAP3);
+	//bmp1.LoadBitmapA(IDB_BITMAP2);
+	//bmp2.LoadBitmapA(IDB_BITMAP3);
 
 	//创建文件夹
 	CString file = "Recv";
@@ -360,7 +360,7 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 		//将PICTURE控件的坐标设为全屏大小  
 		GetDlgItem(IDC_IMAGE)->MoveWindow(CRect(0, 0, g_iCurScreenWidth, g_iCurScreenHeight));  
-		if(!has_client){
+		/*if(!has_client){
 			CWnd *pWnd;
 			pWnd = this->GetDlgItem(IDC_IMAGE);
 			CBrush br;
@@ -372,7 +372,7 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 			pdc->FillRect(&rect,&br);
 			br.DeleteObject();
 			pWnd->ReleaseDC(pdc);
-		}
+		}*/
 
 	}  
 	else  
@@ -394,7 +394,7 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 		GetDlgItem(IDC_IMAGE)->SetWindowPlacement(&m_struOldWndpPic);
 		SetWindowPlacement(&m_struOldWndpl);  
-		if (!has_client) {
+		/*if (!has_client) {
 			CWnd *pWnd;
 			pWnd = this->GetDlgItem(IDC_IMAGE);
 			CBrush br;
@@ -406,7 +406,7 @@ void CMonitor::OnLButtonDblClk(UINT nFlags, CPoint point)
 			pdc->FillRect(&rect,&br);
 			br.DeleteObject();
 			pWnd->ReleaseDC(pdc);
-		}
+		}*/
 	}  
 	CDialogEx::OnLButtonDblClk(nFlags, point);
 }

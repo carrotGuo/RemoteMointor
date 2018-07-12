@@ -1,14 +1,19 @@
-﻿生成启动时间为 2018-07-12 09:01:36。
+﻿生成启动时间为 2018-07-12 10:21:30。
      1>项目“F:\C++\RemoteMonitor\RemoteMonitor\RemoteMonitor.vcxproj”在节点 2 上(build 个目标)。
      1>InitializeBuildStatus:
          正在创建“Debug\RemoteMonitor.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
        ClCompile:
          所有输出均为最新。
-         C:\软件\visiostudio2010\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _MBCS /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\RemoteMonitor.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Client.cpp
-         Client.cpp
-     1>f:\c++\remotemonitor\remotemonitor\client.h(4): warning C4005: “WINAPI”: 宏重定义
+         C:\软件\visiostudio2010\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _MBCS /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\RemoteMonitor.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Monitor.cpp
+         Monitor.cpp
+     1>f:\c++\remotemonitor\remotemonitor\monitor.h(4): warning C4005: “WINAPI”: 宏重定义
                  c:\program files (x86)\microsoft sdks\windows\v7.0a\include\windef.h(124) : 参见“WINAPI”的前一个定义
-     1>f:\c++\remotemonitor\remotemonitor\client.cpp(49): warning C4800: “byte”: 将值强制为布尔值“true”或“false”(性能警告)
+     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(450): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\软件\visiostudio2010\vc\include\stdio.h(371) : 参见“sprintf”的声明
+     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(469): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\软件\visiostudio2010\vc\include\stdio.h(371) : 参见“sprintf”的声明
+     1>f:\c++\remotemonitor\remotemonitor\monitor.cpp(477): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\软件\visiostudio2010\vc\include\stdio.h(371) : 参见“sprintf”的声明
        ResourceCompile:
          所有输出均为最新。
        ManifestResourceCompile:
@@ -37,4 +42,4 @@
 
 生成成功。
 
-已用时间 00:00:00.65
+已用时间 00:00:01.54
